@@ -26,10 +26,28 @@ function formatItem(doc) {
 // ─────────────────────────────────────────────────────────────────────────────
 router.get('/', verifyToken, async (req, res) => {
   try {
-    const items = await MasterItem.find().sort({ itemId: 1 }).lean();
+    // Fetch master items
+    const masterItems = await MasterItem.find().sort({ itemId: 1 }).lean();
+    // Attach inventory quantities to each item
+    const enrichedItems = await Promise.all(
+      masterItems.map(async (doc) => {
+        const inv = await Inventory.findOne({ itemId: doc.itemId }).lean();
+        return {
+          itemId: doc.itemId,
+          itemType: doc.itemType,
+          description: doc.description,
+          totalQuantity: doc.totalQuantity,
+          normalQuantity: inv?.normalQuantity ?? 0,
+          reusableQuantity: inv?.reusableQuantity ?? 0,
+          scrapQuantity: inv?.scrapQuantity ?? 0,
+          createdAt: doc.createdAt,
+          updatedAt: doc.updatedAt,
+        };
+      })
+    );
     return res.json({
       success: true,
-      data: items.map(formatItem),
+      data: enrichedItems,
     });
   } catch (error) {
     console.error('GET /api/items error:', error);
