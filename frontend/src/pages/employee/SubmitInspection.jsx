@@ -3,29 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ClipboardPen, X } from 'lucide-react';
 
 import { itemsApi } from '../../services/api';
-// (Removed mock data and state declarations; they are moved inside the component)
-useEffect(() => {
-  const fetchItems = async () => {
-    try {
-      const response = await itemsApi.getAll();
-      if (response.data && response.data.success) {
-        setItems(response.data.data);
-      } else {
-        setLoadError('Failed to load items.');
-      }
-    } catch (err) {
-      console.error('Error fetching items:', err);
-      setLoadError('Error loading items.');
-    } finally {
-      setLoadingItems(false);
-    }
-  };
-  fetchItems();
-}, []);
-
 
 export const SubmitInspection = () => {
   const navigate = useNavigate();
+
+  // State for items fetched from backend
+  const [items, setItems] = useState([]);
+  const [loadingItems, setLoadingItems] = useState(true);
+  const [loadError, setLoadError] = useState(null);
 
   const [selectedItem, setSelectedItem] = useState(null);
   const [quantity, setQuantity] = useState('');
@@ -34,6 +19,26 @@ export const SubmitInspection = () => {
   const [photoPreview, setPhotoPreview] = useState(null);
   const [validationErrors, setValidationErrors] = useState({});
   const [submissionState, setSubmissionState] = useState('idle'); // idle | submitting | success
+
+  // Fetch items when component mounts
+  useEffect(() => {
+    const fetchItems = async () => {
+      try {
+        const response = await itemsApi.getAll();
+        if (response.data && response.data.success) {
+          setItems(response.data.data);
+        } else {
+          setLoadError('Failed to load items.');
+        }
+      } catch (err) {
+        console.error('Error fetching items:', err);
+        setLoadError('Error loading items.');
+      } finally {
+        setLoadingItems(false);
+      }
+    };
+    fetchItems();
+  }, []);
 
   // Cleanup object URL when component unmounts or photo changes
   useEffect(() => {
@@ -73,7 +78,7 @@ export const SubmitInspection = () => {
     } else if (isNaN(qtyNum) || qtyNum < 1) {
       errors.quantity = 'Quantity must be at least 1.';
     } else if (selectedItem && qtyNum > selectedItem.normalQuantity) {
-      errors.quantity = `Maximum quantity is ${selectedItem.availableQuantity}.`;
+      errors.quantity = `Maximum quantity is ${selectedItem.normalQuantity}.`;
     }
     if (!defectDescription.trim()) {
       errors.defect = 'Defect description is required.';
@@ -88,6 +93,7 @@ export const SubmitInspection = () => {
     e.preventDefault();
     if (!validateForm()) return;
     setSubmissionState('submitting');
+    // Placeholder for actual backend call – will be implemented later
     setTimeout(() => {
       setSubmissionState('success');
     }, 500);
@@ -122,15 +128,18 @@ export const SubmitInspection = () => {
               className="form-input"
               value={selectedItem?.itemId || ''}
               onChange={handleItemChange}
+              disabled={loadingItems}
             >
               <option value="">-- Select Item --</option>
-              {MOCK_ITEMS.map((item) => (
+              {items.map((item) => (
                 <option key={item.itemId} value={item.itemId}>
                   {item.itemId}
                 </option>
               ))}
             </select>
-            {validationErrors.item && <p className="alert alert-error" style={{ marginTop: '0.5rem' }}>{validationErrors.item}</p>}
+            {validationErrors.item && (
+              <p className="alert alert-error" style={{ marginTop: '0.5rem' }}>{validationErrors.item}</p>
+            )}
           </div>
           {selectedItem && (
             <div className="item-details" style={{ marginTop: '1rem', lineHeight: '1.6' }}>
@@ -161,7 +170,9 @@ export const SubmitInspection = () => {
                 Available quantity: {selectedItem.normalQuantity}
               </small>
             )}
-            {validationErrors.quantity && <p className="alert alert-error" style={{ marginTop: '0.5rem' }}>{validationErrors.quantity}</p>}
+            {validationErrors.quantity && (
+              <p className="alert alert-error" style={{ marginTop: '0.5rem' }}>{validationErrors.quantity}</p>
+            )}
           </div>
           <div className="form-group">
             <label className="form-label" htmlFor="defect">Describe the defect</label>
@@ -172,8 +183,10 @@ export const SubmitInspection = () => {
               placeholder="Enter defect details..."
               value={defectDescription}
               onChange={(e) => setDefectDescription(e.target.value)}
-            ></textarea>
-            {validationErrors.defect && <p className="alert alert-error" style={{ marginTop: '0.5rem' }}>{validationErrors.defect}</p>}
+            />
+            {validationErrors.defect && (
+              <p className="alert alert-error" style={{ marginTop: '0.5rem' }}>{validationErrors.defect}</p>
+            )}
           </div>
         </section>
 

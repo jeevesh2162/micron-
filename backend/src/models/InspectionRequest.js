@@ -77,6 +77,16 @@ const InspectionRequestSchema = new mongoose.Schema({
       },
       explanation: String,
     },
+    // deterministic scoring fields
+    damageDetectionScore: { type: Number, min: 0, max: 100 },
+    materialValidationScore: { type: Number, min: 0, max: 100 },
+    reasonConsistencyScore: { type: Number, min: 0, max: 100 },
+    weights: {
+      damageDetection: { type: Number, default: 0.5 },
+      materialValidation: { type: Number, default: 0.3 },
+      reasonConsistency: { type: Number, default: 0.2 },
+    },
+    overallScore: { type: Number, min: 0, max: 100 },
     suggestedStatus: {
       type: String,
       enum: ['NORMAL', 'REUSABLE', 'SCRAP'],
