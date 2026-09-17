@@ -6,7 +6,7 @@ const { connectDb } = require('./db');
 const authRoutes = require('./routes/auth.routes');
 const dashboardRoutes = require('./routes/dashboard.routes');
 const itemRoutes = require('./routes/item.routes');
-
+const inspectionRoutes = require('./routes/inspection.routes');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -32,7 +32,8 @@ app.get('/api/health', (req, res) => {
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/dashboard', dashboardRoutes);
-app.use('/api/items', itemRoutes);
+app.use('/api/inspections', inspectionRoutes);
+
 
 // Error Handling Middleware
 app.use((err, req, res, next) => {

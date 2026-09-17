@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ClipboardPen, X } from 'lucide-react';
 
-import { itemsApi } from '../../services/api';
+import { itemsApi, requestsApi } from '../../services/api';
 
 export const SubmitInspection = () => {
   const navigate = useNavigate();
@@ -89,14 +89,30 @@ export const SubmitInspection = () => {
     return Object.keys(errors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
     setSubmissionState('submitting');
-    // Placeholder for actual backend call – will be implemented later
-    setTimeout(() => {
-      setSubmissionState('success');
-    }, 500);
+    try {
+      const formData = new FormData();
+      formData.append('itemId', selectedItem.itemId);
+      formData.append('quantity', quantity);
+      formData.append('defectDescription', defectDescription);
+      if (photo) formData.append('photo', photo);
+      const response = await requestsApi.submitInspection(formData);
+      if (response.data && response.data.success) {
+        setSubmissionState('success');
+        // Navigate to My Requests after short delay to show success message
+        setTimeout(() => navigate('/employee/requests'), 800);
+      } else {
+        setSubmissionState('idle');
+        alert(response.data?.message || 'Submission failed');
+      }
+    } catch (err) {
+      console.error('Inspection submission error:', err);
+      setSubmissionState('idle');
+      alert('An error occurred while submitting the inspection.');
+    }
   };
 
   return (

@@ -34,13 +34,15 @@ export const itemsApi = {
   update: (itemId, data) => api.patch(`/items/${itemId}`, data),
 };
 
-// ─── Inspection request APIs (stubs for future tasks) ─────────────────────────
+// ─── Inspection request APIs ───────────────────────────────────────────────
 export const requestsApi = {
-  submitInspection: (data) => api.post('/requests', data),
-  getMyRequests: () => api.get('/requests/my'),
-  getAll: () => api.get('/manager/requests'),
-  getById: (id) => api.get(`/manager/requests/${id}`),
-  review: (id, data) => api.patch(`/manager/requests/${id}/review`, data),
+  submitInspection: (formData) =>
+    api.post('/inspections', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
+  getMyRequests: () => api.get('/inspections/my-requests'),
+  // Manager endpoints (future use)
+  getAll: () => api.get('/inspections'),
 };
 
 // ─── Inventory APIs (stubs for future tasks) ──────────────────────────────────
